@@ -1,0 +1,47 @@
+[
+    {
+        "id": 1,
+        "Unique_investment_reference_Id" : 23,
+        "Fractional_Ids" : "I1-1",
+        "Name_of_Seller": "Seller_Name",
+        "Purchaser_ID": 3,
+        "Listed_per_unit_price": 10000,
+        "Bids_withdrawn": false,
+        "Bids_modified": false,
+        "Date_of_Bids": "2023-07-29",
+        "Name_of_Buyers": "Buyer_Name",
+        "Bid_accepted": true,
+        "Bids_Rejected": false,
+        "Time_stamp_of_bids_accepted": "2024-08-01 09:30:00+05:30"
+    },
+    {
+        "id": 2,
+        "Unique_investment_reference_Id" : 23,
+        "Fractional_Ids" : "I1-2",
+        "Name_of_Seller": "Seller_Name",
+        "Purchaser_ID": 3,
+        "Listed_per_unit_price": 10000,
+        "Bids_withdrawn": false,
+        "Bids_modified": false,
+        "Date_of_Bids": "2023-07-29",
+        "Name_of_Buyers": "Buyer_Name",
+        "Bid_accepted": true,
+        "Bids_Rejected": false,
+        "Time_stamp_of_bids_accepted": "2024-08-01 09:30:00+05:30"
+    },
+    {
+        "id": 3,
+        "Unique_investment_reference_Id" : 27,
+        "Fractional_Ids" : "I2-1",
+        "Name_of_Seller": "Seller_Name",
+        "Purchaser_ID": 3,
+        "Listed_per_unit_price": 10000,
+        "Bids_withdrawn": false,
+        "Bids_modified": false,
+        "Date_of_Bids": "2023-07-29",
+        "Name_of_Buyers": "Buyer_Name",
+        "Bid_accepted": true,
+        "Bids_Rejected": false,
+        "Time_stamp_of_bids_accepted": "2024-08-01 10:30:00+05:30"
+    }
+]

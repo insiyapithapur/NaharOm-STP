@@ -1,0 +1,53 @@
+[
+    {
+        "id": 1,
+        "Purchaser_ID": 3,
+        "Investment_ref_Id":23,
+        "Fractional_id" :"I1-1",
+        "Purpose": "Purpose",
+        "Listing_Date": "2024-08-01" ,
+        "Seller_name" : "Seller_Name",
+        "Seller_PAN": "Seller_PAN",
+        "Seller_ID":2,
+        "Open_to_Bid_date": "2023-07-20",
+        "Bidding_base_price" : 900,
+        "Buyer_Bid":1000,
+        "Buyer_Bid_date" : "2023-07-29",
+        "Buyer_name": "Buyer_Name",
+        "Buyer_PAN" : "Buyer_PAN"
+    },
+    {
+        "id": 2,
+        "Purchaser_ID": 3,
+        "Investment_ref_Id":23,
+        "Fractional_id" :"I1-2",
+        "Purpose": "Purpose",
+        "Listing_Date": "2024-08-01" ,
+        "Seller_name" : "Seller_Name",
+        "Seller_PAN": "Seller_PAN",
+        "Seller_ID":2,
+        "Open_to_Bid_date": "2023-07-20",
+        "Bidding_base_price" : 900,
+        "Buyer_Bid":1000,
+        "Buyer_Bid_date" : "2023-07-29",
+        "Buyer_name": "Buyer_Name",
+        "Buyer_PAN" : "Buyer_PAN"
+    },
+    {
+        "id": 2,
+        "Purchaser_ID": 3,
+        "Investment_ref_Id":27,
+        "Fractional_id" :"I2-1",
+        "Purpose": "Purpose",
+        "Listing_Date": "2024-08-01" ,
+        "Seller_name" : "Seller_Name",
+        "Seller_PAN": "Seller_PAN",
+        "Seller_ID":2,
+        "Open_to_Bid_date": "2023-07-15",
+        "Bidding_base_price" : 900,
+        "Buyer_Bid":1000,
+        "Buyer_Bid_date" : "2023-07-29",
+        "Buyer_name": "Buyer_Name",
+        "Buyer_PAN" : "Buyer_PAN"
+    }
+]

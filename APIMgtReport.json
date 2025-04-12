@@ -1,0 +1,98 @@
+[
+    {
+        "API_Name" : "Invoice Management",
+        "API_provider" : "Secondary Platform",
+        "Status" : true ,
+        "Description" : "Loan List view for the admin to see all publish , configured and unfractionalized invoices"
+    },
+    {
+        "API_Name" : "PrimaryLoans",
+        "API_provider" : "Primary Platform",
+        "Status" : true ,
+        "Description" : "Get all the invoices from the primary platform"
+    },
+    {
+        "API_Name" : "Loan configurations",
+        "API_provider" : "Secondary Platform",
+        "Status" : true ,
+        "Description" : "Configured the unfractionalized loan coming from primary platform"
+    },
+    {
+        "API_Name" : "Publish Invoice",
+        "API_provider" : "Secondary Platform",
+        "Status" : true ,
+        "Description" : "Configured the unfractionalized loan coming from primary platform"
+    },
+    {
+        "API_Name" : "User Management",
+        "API_provider" : "Secondary Platform",
+        "Status" : true ,
+        "Description" : "Admin can view all the users with their details"
+    },
+    {
+        "API_Name" : "transaction Report",
+        "API_provider" : "Secondary Platform",
+        "Status" : true ,
+        "Description" : "Admin can view all the users transactions"
+    },
+    {
+        "API_Name" : "Sales Purchased Report",
+        "API_provider" : "Secondary Platform",
+        "Status" : true ,
+        "Description" : "Admin can view all the sales and purchase details"
+    },
+    {
+        "API_Name" : "TDS Report",
+        "API_provider" : "Secondary Platform",
+        "Status" : true ,
+        "Description" : "Admin can view TDS of users"
+    },
+    {
+        "API_Name" : "BID Report",
+        "API_provider" : "Secondary Platform",
+        "Status" : true ,
+        "Description" : "Admin can view Biding of all users"
+    },
+    {
+        "API_Name" : "Trading Activity Report",
+        "API_provider" : "Secondary Platform",
+        "Status" : true ,
+        "Description" : "Admin can view all users trading activity"
+    },
+    {
+        "API_Name" : "Generate OTP",
+        "API_provider" : "Secondary Platform",
+        "Status" : true ,
+        "Description" : "Admin/users can login or signup through this"
+    },
+    {
+        "API_Name" : "Generate OTP",
+        "API_provider" : "Signzy",
+        "Status" : true ,
+        "Description" : "OTP sender API from Signzy"
+    },
+    {
+        "API_Name" : "verify OTP",
+        "API_provider" : "Signzy",
+        "Status" : true ,
+        "Description" : "OTP validation API from Signzy"
+    },
+    {
+        "API_Name" : "phone To Prefill",
+        "API_provider" : "Signzy",
+        "Status" : true ,
+        "Description" : "For fetaching individual details"
+    },
+    {
+        "API_Name" : "PAN TO GST",
+        "API_provider" : "Signzy",
+        "Status" : true ,
+        "Description" : "For fetaching Company details"
+    },
+    {
+        "API_Name" : "PAN TO GST",
+        "API_provider" : "Signzy",
+        "Status" : true ,
+        "Description" : "For fetaching Company details"
+    }
+]

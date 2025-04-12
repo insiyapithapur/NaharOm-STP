@@ -1,0 +1,21 @@
+from django.contrib import admin
+from . import models
+
+admin.site.register(models.User)
+admin.site.register(models.IndividualDetails)
+admin.site.register(models.CompanyDetails)
+admin.site.register(models.PanCardNos)
+admin.site.register(models.BankAccountDetails)
+admin.site.register(models.Wallet)
+admin.site.register(models.Invoices)
+admin.site.register(models.FractionalUnits)
+admin.site.register(models.AdminSettings)
+# admin.site.register(models.SalePurchaseReport)
+admin.site.register(models.Configurations)
+admin.site.register(models.Post_for_sale)
+admin.site.register(models.Post_For_Sale_UnitTracker)
+admin.site.register(models.Buyers)
+admin.site.register(models.Buyer_UnitsTracker)
+admin.site.register(models.Sales)
+admin.site.register(models.Sales_UnitTracker)
+admin.site.register(models.WalletTransaction)
