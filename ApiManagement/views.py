@@ -17,7 +17,7 @@ class ApiStatusView(APIView):
     POST: Update status of external api, make it on or off.
     """
 
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = []
 
     def get(self, request):
         try:
