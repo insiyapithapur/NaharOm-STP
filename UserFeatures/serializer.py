@@ -29,16 +29,16 @@ class UserRoleSerializer(serializers.ModelSerializer):
 
 class IndividualProfileSerializer(serializers.Serializer):
     user = serializers.IntegerField(required=True)
-    alternatePhone = serializers.CharField(required=True)
+    alternate_phone_no = serializers.CharField(required=True)
     email = serializers.EmailField(required=True)
-    address1 = serializers.CharField(required=True)
-    address2 = serializers.CharField(required=True)
-    panCardNumber = serializers.CharField(required=False)
-    firstName = serializers.CharField(required=True)
-    lastName = serializers.CharField(required=True)
+    addressLine1 = serializers.CharField(required=True)
+    addressLine2 = serializers.CharField(required=True)
+    pan_card_no = serializers.CharField(required=False)
+    first_name = serializers.CharField(required=True)
+    last_name = serializers.CharField(required=True)
     state = serializers.CharField(required=True)
     city = serializers.CharField(required=True)
-    postalCode = serializers.CharField(required=True)
+    pin_code = serializers.CharField(required=True)
 
 class CompanyProfileSerializer(serializers.Serializer):
     user = serializers.IntegerField(required=True)
