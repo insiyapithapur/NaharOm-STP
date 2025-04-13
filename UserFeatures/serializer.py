@@ -33,7 +33,7 @@ class IndividualProfileSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
     addressLine1 = serializers.CharField(required=True)
     addressLine2 = serializers.CharField(required=True)
-    pan_card_no = serializers.CharField(required=False)
+    panCardNumber = serializers.CharField(required=False)
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
     state = serializers.CharField(required=True)
