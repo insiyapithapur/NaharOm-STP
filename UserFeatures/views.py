@@ -450,7 +450,7 @@ class PANToGSTAPI(APIView):
         return Response({"message": "Only POST methods are allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
     
 class ProfileAPIView(APIView):
-    permission_classes = [AllowAny]  # Uncomment if authentication is required
+    permission_classes = [AllowAny] 
 
     def get(self, request, user=None):
         if not user:
@@ -507,8 +507,8 @@ class ProfileAPIView(APIView):
                         profile = models.IndividualDetails.objects.get(user_role=user_role)
                         profile.first_name = validated_data.get("firstName")
                         profile.last_name = validated_data.get("lastName")
-                        profile.addressLine1 = validated_data.get("address1")
-                        profile.addressLine2 = validated_data.get("address2")
+                        profile.addressLine1 = validated_data.get("addressLine1")
+                        profile.addressLine2 = validated_data.get("addressLine2")
                         profile.city = validated_data.get("city")
                         profile.state = validated_data.get("state")
                         profile.pin_code = validated_data.get("postalCode")
@@ -555,8 +555,8 @@ class ProfileAPIView(APIView):
                                 user_role=user_role,
                                 first_name=validated_data.get("firstName"),
                                 last_name=validated_data.get("lastName"),
-                                addressLine1=validated_data.get("address1"),
-                                addressLine2=validated_data.get("address2"),
+                                addressLine1=validated_data.get("addressLine1"),
+                                addressLine2=validated_data.get("addressLine2"),
                                 city=validated_data.get("city"),
                                 state=validated_data.get("state"),
                                 pin_code=validated_data.get("postalCode"),

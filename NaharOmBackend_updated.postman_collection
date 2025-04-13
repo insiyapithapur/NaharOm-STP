@@ -1,0 +1,1480 @@
+{
+	"info": {
+		"_postman_id": "aa54f7ec-9fb6-40d5-8495-37deb1788de3",
+		"name": "NaharOmBackend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30178984",
+		"_collection_link": "https://winter-escape-411176.postman.co/workspace/Inii-Kirtan-Team~2dcfe801-8a3c-4cd1-85dc-6b74b21282da/collection/30178984-aa54f7ec-9fb6-40d5-8495-37deb1788de3?action=share&source=collection_link&creator=30178984"
+	},
+	"item": [
+		{
+			"name": "Primary APIs",
+			"item": [
+				{
+					"name": "seller-api Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"phone_number\": \"9176122828\",\r\n    \"password\": \"Admin@123!\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://backend.ethyx.in/seller-api/login/",
+							"protocol": "http",
+							"host": [
+								"backend",
+								"ethyx",
+								"in"
+							],
+							"path": [
+								"seller-api",
+								"login",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "admin-api payment-schedule-calculator",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzIyMzQyNzUwLCJpYXQiOjE3MjIyNTYzNTAsImp0aSI6ImZlMjAwMzM1OTYzNjRmNTRhYjA3ZTE4NWU4ZDI5NWJkIiwidWlkIjoiQVNOV1ROODI4NSJ9.8_yy4cwJGrJ8z2UsRcAYl7Hr3-1xGfIGoY4TFQ3JZng",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"invoice_product_id\": 8\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://backend.ethyx.in/admin-api/payment-schedule-calculator/",
+							"protocol": "http",
+							"host": [
+								"backend",
+								"ethyx",
+								"in"
+							],
+							"path": [
+								"admin-api",
+								"payment-schedule-calculator",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Secondary APIs",
+			"item": [
+				{
+					"name": "Admin APIs",
+					"item": [
+						{
+							"name": "Get Invoices from primary",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://127.0.0.1:8000/appAdmin/get-invoices/2",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"appAdmin",
+										"get-invoices",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Specific Invoice from Primary",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://127.0.0.1:8000/appAdmin/get-invoices/2/6",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"appAdmin",
+										"get-invoices",
+										"2",
+										"6"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Invoice Mgt",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseURL}}/appAdmin/invoice-management/2",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"appAdmin",
+										"invoice-management",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "configurations",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user\" : 2,\r\n    \"primary_invoice_id\" : 13,\r\n    \"no_of_units\" : 5,\r\n    \"per_unit_price\" : 4000000\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/appAdmin/configurations/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"appAdmin",
+										"configurations",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Post invoice",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user\" : 2,\r\n    \"no_of_units\" : 2,\r\n    \"per_unit_price\" : 2000000,\r\n    \"configureID\" : 1,\r\n    \"from_date\": \"2025-04-12\" , \r\n    \"to_date\" : \"2025-12-28\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/appAdmin/post-invoice/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"appAdmin",
+										"post-invoice",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Invoice Transaction Log",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://127.0.0.1:8000/appAdmin/transaction-logs/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"appAdmin",
+										"transaction-logs",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Onboarding Report",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://127.0.0.1:8000/appAdmin/onboarding-report/2",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"appAdmin",
+										"onboarding-report",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "TransactionReport",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://127.0.0.1:8000/appAdmin/transaction-report/2",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"appAdmin",
+										"transaction-report",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Sales Purchased Report",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://127.0.0.1:8000/appAdmin/sales-purchased-report/2",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"appAdmin",
+										"sales-purchased-report",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "TradingActivityReport",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://127.0.0.1:8000/appAdmin/tds-report/2",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"appAdmin",
+										"tds-report",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Bid Report",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://127.0.0.1:8000/appAdmin/bid-report/2",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"appAdmin",
+										"bid-report",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Trading Activity of Patron Report",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://127.0.0.1:8000/appAdmin/trading-activity-report/2",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"appAdmin",
+										"trading-activity-report",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "API Mgt",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://127.0.0.1:8000/appAdmin/api-management-report/2",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"appAdmin",
+										"api-management-report",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "impersonate",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://127.0.0.1:8000/appAdmin/impersonate/2/1/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"appAdmin",
+										"impersonate",
+										"2",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Users APIs",
+					"item": [
+						{
+							"name": "Generate otp",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"countryCode\" : \"91\" ,\r\n    \"mobileNumber\" : \"9016222140\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:8000/generate-otp/",
+									"host": [
+										"localhost"
+									],
+									"port": "8000",
+									"path": [
+										"generate-otp",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "verify otp",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"countryCode\" : \"91\" ,\r\n    \"mobileNumber\" : \"9228774652\" ,\r\n    \"user_role\" : \"Company\", // if you are individual then Individual\r\n    \"referenceId\" : \"telecom_15JaOVZRiuXsoSPoqiwjSDjpDWoH5cg8\" ,\r\n    \"otp\" : \"359480\" ,\r\n    \"extraFields\" : false\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:8000/verify-otp/",
+									"host": [
+										"localhost"
+									],
+									"port": "8000",
+									"path": [
+										"verify-otp",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Verify Status",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://127.0.0.1:8000/verify-status/3",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"verify-status",
+										"3"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Phone To Prefill",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://127.0.0.1:8000/phone-to-prefill/1",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"phone-to-prefill",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PAN_TO_GST",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user\" : 5,\r\n    \"pan\" : \"BEWPP5635R\" ,\r\n    \"email\" : \"saifee.raaj@gmail.com\" ,\r\n    \"state\" : \"Gujarat\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://naharombackend-ppgo.onrender.com/PAN_TO_GST/",
+									"protocol": "https",
+									"host": [
+										"naharombackend-ppgo",
+										"onrender",
+										"com"
+									],
+									"path": [
+										"PAN_TO_GST",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Profile",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user\" : 3,\r\n    \"alternate_phone_no\" : \"9016222140\" , //if individual then instead alternate_phone_no it is alternatePhone\r\n    \"email\" : \"banupithapur@gmail.com\",\r\n    \"addressLine1\" : \"Dahod , Gujarat\", \r\n    \"addressLine2\" : \"Dahod , Gujarat\",\r\n    \"company_pan_no\" : \"xyz12345\",  //if individual then instead company_pan_no it is panCardNumber\r\n    \"company_name\" : \"testing company\",  //this will not come if you are individual\r\n    \"public_url_company\" : \"https://www.google.com/\", //this will not come if you are individual\r\n    // \"firstName\" : \"Insiya\", //if individual then add this \r\n    // \"lastName\" : \"Pithapur\" , //if individual then add this\r\n    \"state\" : \"Gujarat\" ,\r\n    \"city\" : \"Dahod\",\r\n    \"pin_no\" : \"389151\" //if individual then instead pin_no it is panCardNumber\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/profile/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"profile",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Profile",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8000/profile/3",
+									"host": [
+										"localhost"
+									],
+									"port": "8000",
+									"path": [
+										"profile",
+										"3"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Bank Acc Details",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user\" : 3,\r\n    \"account_number\" : \"125333\",\r\n    \"ifc_code\" : \"HDFC033\",\r\n    \"account_type\" : \"Saving\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/bank-account-details/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"bank-account-details",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Credit Funds",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user\" : 3,\r\n    \"primary_BankAccID\" : 3,\r\n    \"amount\" : 2000000\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/credit-funds/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"credit-funds",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Withdraw Funds",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user\" : 1,\r\n    \"primary_BankAccID\" : 1,\r\n    \"amount\" : 100\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/withdraw-funds/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"withdraw-funds",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Ledger",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://127.0.0.1:8000/ledger/1",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"ledger",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show funds",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://127.0.0.1:8000/show-funds/1",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"show-funds",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Sell Purchase Details",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://127.0.0.1:8000/get-sell-purchase-details/1",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"get-sell-purchase-details",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "ToBuy",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user\" : 1,\r\n    \"postForSaleID\" : 1,\r\n    \"no_of_units\" : 1\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/to-buy/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"to-buy",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Post For Sell",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user\" :1 ,\r\n    \"buyerID\" : 1,\r\n    \"no_of_units\" : 1 ,\r\n    \"per_unit_price\" : 3000000 ,\r\n    \"from_date\" : \"2025-05-28\",\r\n    \"to_date\" : \"2025-10-28\",\r\n    \"type_of_sell\" : \"BIDDABLE\"  // or have \"FIXED\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/post-for-sell/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"post-for-sell",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check Balance Against Bid Price",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user\" : 3,\r\n    \"bid_price\" : 4800000\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/checkBalanceAgainstBidPrice/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"checkBalanceAgainstBidPrice",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "proceed To Bid",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user\" : 3,\r\n    \"per_unit_bid_price\" : 2000000,\r\n    \"no_of_units\" : 1,\r\n    \"postForSaleID\" : 2\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/proceed-to-bid/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"proceed-to-bid",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "modify Bid",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user\" : 2,\r\n    // \"postedForSaleID\" : 6,\r\n    \"per_unit_price\" : 2000000 , \r\n    \"no_of_units\" : 1,\r\n    \"type\" : \"BIDDER\", // or \"SELLER\"\r\n    \"userBidID\" : 10\r\n    // \"buyerID\" : 5\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/modifyBid/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"modifyBid",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "withdraw Bid",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user\" : 17,\r\n    \"type\" : \"BIDDER\" , //or \"SELLER\"\r\n    // \"postedForSaleID\" : 6\r\n    \"userbidID\" : 10\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/withdrawBid/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"withdrawBid",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "accept Bid",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user\" : 2 ,\r\n    \"userBidID\" : 1\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/accept-bid/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"accept-bid",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "cash Flow",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://127.0.0.1:8000/cashFlow/3",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"cashFlow",
+										"3"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Profile for company",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user\" : 5 , \r\n    \"company_name\" : \"RAAJ MOBILE POINT\",\r\n    \"addressLine1\" : \"0, STATION ROAD, BURHANI ENKLOV, DAHOD, GUJARAT, 389151\",\r\n    \"addressLine2\" : \"0, STATION ROAD, BURHANI ENKLOV, DAHOD, GUJARAT, 389151\",\r\n    \"city\" : \"DAHOD\" ,\r\n    \"state\" : \"GUJARAT\" ,\r\n    \"email\" : \"saifee.raaj@gmail.com\" ,\r\n    \"pin_no\" : \"389151\",\r\n    \"alternate_phone_no\" : \"9638773773\",\r\n    \"company_pan_no\" : \"BEWPP5635R\" ,\r\n    \"public_url_company\" : \"NULL\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://naharombackend-ppgo.onrender.com/Profile/",
+									"protocol": "https",
+									"host": [
+										"naharombackend-ppgo",
+										"onrender",
+										"com"
+									],
+									"path": [
+										"Profile",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "fixed price",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"type\": \"SELLER\",\r\n    \"loan_amount\": 10000000,\r\n    \"fractional_unit_value\" : 500000, \r\n    \"num_fractions\": 20,\r\n    \"annual_interest_rate\": 0.20,\r\n    \"loan_period_years\": 2,\r\n    // \"total_installments\" : 19,\r\n    \"units_bought\": 1,\r\n    \"target_xirr\" : 1.5,\r\n    // \"disbursed_date\": \"2024-04-01\",  // ISO format for the date\r\n    // \"first_payment_date\": \"2024-05-01\",\r\n    // \"additional_payment\" : 1550000,\r\n    \"payment_frequency\": \"MONTHLY\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/irr/fixed_price/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"irr",
+										"fixed_price",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "declining principal",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"type\" : \"SELLER\",\r\n    \"loan_amount\" : 10000000,\r\n    \"num_fractions\" :  20 ,\r\n    \"fractional_unit_value\" : 500000, \r\n    \"annual_interest_rate\" :  0.20 ,\r\n    \"loan_period_years\" : 2 ,\r\n    // \"total_installments\" :  19 ,\r\n    \"units_bought\" :  1 ,\r\n    \"target_xirr\" : 0.9985 ,\r\n    \"payment_frequency\" : \"MONTHLY\" ,\r\n    \"monthly_payment\" : 25019.2749869395 \r\n    // \"additional_payment\" : 510000\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/irr/declining_principal/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"irr",
+										"declining_principal",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "balloon payment",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"type\" : \"SELLER\",\r\n    \"loan_amount\" : 10000000,\r\n    \"fractional_unit_value\" : 500000,\r\n    \"num_fractions\" :  20 ,\r\n    \"annual_interest_rate\" :  0.20 ,\r\n    // \"total_installments\" : 12,\r\n    \"loan_period_years\" : 2 ,\r\n    // \"number_of_period\" :  24 ,\r\n    \"units_bought\" :  1 ,\r\n    \"target_xirr\" : 0.9985 ,\r\n    \"payment_frequency\" : \"MONTHLY\" \r\n    // \"monthly_payment\" : 25019.2749869395\r\n    // \"additional_payment\" : 1550000\r\n    // \"investment_amount\" : 510000\r\n    // \"selling_price\" : 510000\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/irr/balloon_principal/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"irr",
+										"balloon_principal",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "balloon_Interest_Only",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"type\" : \"SELLER\",\r\n    \"loan_amount\" : 10000000,\r\n    \"fractional_unit_value\" : 500000,\r\n    \"num_fractions\" :  20 ,\r\n    \"annual_interest_rate\" :  0.20 ,\r\n    // \"total_installments\" : 12,\r\n    \"loan_period_years\" : 2,\r\n    // \"number_of_period\" :  24 ,\r\n    \"units_bought\" :  1 ,\r\n    \"target_xirr\" : 0.2598 ,\r\n    \"payment_frequency\" : \"MONTHLY\" ,\r\n    // \"monthly_payment\" : 25019.2749869395\r\n    \"additional_payment\" : 510000,\r\n    // \"investment_amount\" : 510000\r\n    \"selling_price\" : 510000\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/irr/balloon_Interest_Only/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"irr",
+										"balloon_Interest_Only",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Signzy APIs",
+			"item": [
+				{
+					"name": "Generate OTP",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "34a0GzKikdWkAHuTY2rQsOvDZIZgrODz",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "Authorization",
+									"type": "string"
+								},
+								{
+									"key": "in",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "// curl --location 'https://api-preproduction.signzy.app/api/v3/phone/generateOtp' \\\r\n// --header 'Authorization: pAlBfcckizaTbtHDTdUGLE4WIquev7pS' \\\r\n// --header 'content-type: application/json' \\\r\n// --data-raw '\r\n{\r\n    \"countryCode\": \"91\",\r\n    \"mobileNumber\": \"7016700396\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api-preproduction.signzy.app/api/v3/phone/generateOtp",
+							"protocol": "https",
+							"host": [
+								"api-preproduction",
+								"signzy",
+								"app"
+							],
+							"path": [
+								"api",
+								"v3",
+								"phone",
+								"generateOtp"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "phone-prefill-v2",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "34a0GzKikdWkAHuTY2rQsOvDZIZgrODz",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "Authorization",
+									"type": "string"
+								},
+								{
+									"key": "in",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "// curl --location 'https://api-preproduction.signzy.app/api/v3/phonekyc/phone-prefill-v2' \\\r\n// --header 'Authorization: pAlBfcckizaTbtHDTdUGLE4WIquev7pS' \\\r\n// --header 'Content-Type: application/json' \\\r\n// --data-raw '{\r\n{\r\n    \"mobileNumber\": \"9638773773\",\r\n    \"fullName\": \"Saifuddin\",\r\n    \"consent\": {\r\n        \"consentFlag\": true,\r\n        \"consentTimestamp\": 17000,\r\n        \"consentIpAddress\": \"684D:1111:222:3333:4444:5555:6:77\",\r\n        \"consentMessageId\": \"CM_1\"\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api-preproduction.signzy.app/api/v3/phonekyc/phone-prefill-v2",
+							"protocol": "https",
+							"host": [
+								"api-preproduction",
+								"signzy",
+								"app"
+							],
+							"path": [
+								"api",
+								"v3",
+								"phonekyc",
+								"phone-prefill-v2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "https://api-preproduction.signzy.app/api/v3/gst/search",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "ND2E2FqLLKa3D9AcMmvNsuwkD5zeAfHO",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "Authorization",
+									"type": "string"
+								},
+								{
+									"key": "in",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "undefined"
+							},
+							{
+								"key": "content-type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"gstin\": \"20AGRPG2101P1ZL\",\n    \"consent\": \"Y\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api-preproduction.signzy.app/api/v3/gst/search",
+							"protocol": "https",
+							"host": [
+								"api-preproduction",
+								"signzy",
+								"app"
+							],
+							"path": [
+								"api",
+								"v3",
+								"gst",
+								"search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "https://api-preproduction.signzy.app/api/v3/gstn/gstndetailed",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "34a0GzKikdWkAHuTY2rQsOvDZIZgrODz",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "Authorization",
+									"type": "string"
+								},
+								{
+									"key": "in",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"gstin\" : \"25AAECJ4213B1Z8\",\r\n    \"returnFilingFrequency\" : true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api-preproduction.signzy.app/api/v3/gstn/gstndetailed",
+							"protocol": "https",
+							"host": [
+								"api-preproduction",
+								"signzy",
+								"app"
+							],
+							"path": [
+								"api",
+								"v3",
+								"gstn",
+								"gstndetailed"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": "https://naharom-stp.onrender.com",
+			"type": "string"
+		}
+	]
+}
