@@ -671,13 +671,6 @@ class ProfileAPIView(APIView):
         except models.UserRole.DoesNotExist:
             return Response({"message": "userID does not found"}, status=status.HTTP_400_BAD_REQUEST)
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.utils import timezone
-import json
-from . import models
-
 class BankAccountDetailsAPIView(APIView):
     """
     API view for handling bank account details.
