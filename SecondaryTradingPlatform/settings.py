@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "corsheaders",
+    "drf_yasg",
     "UserFeatures.apps.UserfeaturesConfig",
     "AdminFeatures.apps.AdminfeaturesConfig",
     "IRRCalc.apps.IrrcalcConfig",

@@ -37,10 +37,33 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
-class TransactionLogAPI(View):
+# Load invoices data from JSON file
+with open(os.path.join(os.path.dirname(__file__), "invoices.json")) as f:
+    invoices_data = json.load(f)
+
+
+def filter_invoice_data(invoice):
+    product = invoice.get("product", {})
+    return {
+        "primary_invoice_id": invoice["id"],
+        "buyer_poc_name": invoice["buyer_poc_name"],
+        "product_name": product.get("name"),
+        "irr": product.get("interest_rate_fixed"),
+        "tenure_in_days": product.get("tenure_in_days"),
+        "interest_rate": product.get("interest"),
+        "xirr": product.get("xirr_in_percentage"),
+        "principle_amt": product.get("principle_amt"),
+        "expiration_time": timezone.now() + timezone.timedelta(days=product.get("tenure_in_days")),
+    }
+
+
+class TransactionLogAPIView(APIView):
+    """
+    API endpoint for managing transaction logs.
+    """
+    
     def get(self, request):
-        user_id = request.GET.get("userId")
+        user_id = request.query_params.get("userId")
 
         if user_id:
             # Filter transactions for the specific user
@@ -49,20 +72,22 @@ class TransactionLogAPI(View):
             # Fetch all transactions if no userId is provided
             logs = admin_models.TransactionLog.objects.all().values()
 
-        return JsonResponse(list(logs), safe=False, status=200)
+        return Response(list(logs), status=status.HTTP_200_OK)
 
     def post(self, request):
         try:
-            data = json.loads(request.body)
-            userRoleID = data.get("user")
-            transaction_type = data.get("transaction_type")
-            no_of_units = data.get("no_of_units")
-            per_unit_price = data.get("per_unit_price")
-            total_price = data.get("total_price")
-            status = data.get("status")
-            remarks = data.get("remarks", "")
+            userRoleID = request.data.get("user")
+            transaction_type = request.data.get("transaction_type")
+            no_of_units = request.data.get("no_of_units")
+            per_unit_price = request.data.get("per_unit_price")
+            total_price = request.data.get("total_price")
+            status_value = request.data.get("status")
+            remarks = request.data.get("remarks", "")
 
-            user_role = models.UserRole.objects.get(id=userRoleID)
+            try:
+                user_role = models.UserRole.objects.get(id=userRoleID)
+            except models.UserRole.DoesNotExist:
+                return Response({"message": "User not found"}, status=status.HTTP_400_BAD_REQUEST)
 
             log_entry = admin_models.TransactionLog.objects.create(
                 user=user_role,
@@ -70,41 +95,35 @@ class TransactionLogAPI(View):
                 no_of_units=no_of_units,
                 per_unit_price=per_unit_price,
                 total_price=total_price,
-                status=status,
+                status=status_value,
                 remarks=remarks,
             )
 
-            return JsonResponse(
+            return Response(
                 {
                     "message": "Transaction log created successfully",
                     "log_id": log_entry.id,
                 },
-                status=201,
+                status=status.HTTP_201_CREATED,
             )
 
-        except models.UserRole.DoesNotExist:
-            return JsonResponse({"message": "User not found"}, status=400)
-        except json.JSONDecodeError:
-            return JsonResponse({"message": "Invalid JSON"}, status=400)
         except Exception as e:
-            return JsonResponse({"message": str(e)}, status=500)
-
-    def http_method_not_allowed(self, request):
-        return JsonResponse(
-            {"message": "Only GET and POST methods are allowed"}, status=405
-        )
+            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@csrf_exempt
-def ExtractInvoicesAPI(request):
-    if request.method == "POST":
+class ExtractInvoicesAPIView(APIView):
+    """
+    API endpoint for extracting invoices with products.
+    """
+    
+    def post(self, request):
         try:
-            data = json.loads(request.body)
+            data = request.data
 
             if not isinstance(data, list):
-                return JsonResponse(
+                return Response(
                     {"message": "Invalid input format, expected a list of objects"},
-                    status=400,
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             filtered_invoices = []
@@ -115,128 +134,89 @@ def ExtractInvoicesAPI(request):
                     if invoice.get("product") is not None:
                         filtered_invoices.append(invoice)
 
-            return JsonResponse({"filtered_invoices": filtered_invoices}, status=200)
+            return Response({"filtered_invoices": filtered_invoices}, status=status.HTTP_200_OK)
 
-        except json.JSONDecodeError:
-            return JsonResponse({"message": "Invalid JSON"}, status=400)
         except Exception as e:
-            return JsonResponse({"message": str(e)}, status=500)
-    else:
-        return JsonResponse({"message": "Only POST methods are allowed"}, status=405)
+            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-with open(os.path.join(os.path.dirname(__file__), "invoices.json")) as f:
-    invoices_data = json.load(f)
-
-
-def filter_invoice_data(invoice):
-    product = invoice.get("product", {})
-    # print("product: ",product)
-    return {
-        "primary_invoice_id": invoice["id"],
-        # hyperlink attach karvani che j dashboard open kare invoice no primary mathi
-        "buyer_poc_name": invoice["buyer_poc_name"],
-        "product_name": product.get("name"),
-        "irr": product.get("interest_rate_fixed"),
-        "tenure_in_days": product.get("tenure_in_days"),
-        "interest_rate": product.get("interest"),
-        "xirr": product.get("xirr_in_percentage"),
-        "principle_amt": product.get("principle_amt"),
-        "expiration_time": timezone.now()
-        + timezone.timedelta(days=product.get("tenure_in_days")),
-    }
-
-
-@csrf_exempt
-def GetInvoicesAPI(request, user_id, primary_invoice_id=None):
-    if request.method == "GET":
+class GetInvoicesAPIView(APIView):
+    """
+    API endpoint for retrieving invoices by user.
+    """
+    
+    def get(self, request, user_id, primary_invoice_id=None):
         try:
             if not user_id:
-                return JsonResponse({"message": "user_id is required"}, status=400)
+                return Response({"message": "user_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
             try:
                 user = models.User.objects.get(id=user_id)
             except models.User.DoesNotExist:
-                return JsonResponse({"message": "User not found"}, status=404)
+                return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
             if not user.is_admin:
-                return JsonResponse(
-                    {
-                        "message": "For this operation you have to register yourself with admin role"
-                    },
-                    status=403,
+                return Response(
+                    {"message": "For this operation you have to register yourself with admin role"},
+                    status=status.HTTP_403_FORBIDDEN,
                 )
 
             if primary_invoice_id:
                 invoice_data = next(
-                    (
-                        inv
-                        for inv in invoices_data["filtered_invoices"]
-                        if inv["id"] == primary_invoice_id
-                    ),
+                    (inv for inv in invoices_data["filtered_invoices"] if inv["id"] == primary_invoice_id),
                     None,
                 )
                 if not invoice_data:
-                    return JsonResponse({"message": "Invoice not found"}, status=404)
+                    return Response({"message": "Invoice not found"}, status=status.HTTP_404_NOT_FOUND)
                 filtered_invoice_data = filter_invoice_data(invoice_data)
-                return JsonResponse(filtered_invoice_data, status=200)
+                return Response(filtered_invoice_data, status=status.HTTP_200_OK)
             else:
                 filtered_invoices_data = [
-                    filter_invoice_data(inv)
-                    for inv in invoices_data["filtered_invoices"]
+                    filter_invoice_data(inv) for inv in invoices_data["filtered_invoices"]
                 ]
-                return JsonResponse(filtered_invoices_data, safe=False, status=200)
+                return Response(filtered_invoices_data, status=status.HTTP_200_OK)
 
-        except json.JSONDecodeError:
-            return JsonResponse({"message": "Invalid JSON"}, status=400)
         except Exception as e:
-            return JsonResponse({"message": str(e)}, status=500)
-    else:
-        return JsonResponse({"message": "Only GET methods are allowed"}, status=405)
+            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@csrf_exempt
-def InvoiceMgtAPI(request, user, primary_invoice_id=None):
-    if request.method == "GET":
+class InvoiceMgtAPIView(APIView):
+    """
+    API endpoint for managing invoices.
+    """
+    
+    def get(self, request, user, primary_invoice_id=None):
         try:
             try:
                 user_role = models.UserRole.objects.get(id=user)
             except models.UserRole.DoesNotExist:
-                return JsonResponse({"message": "User not found"}, status=404)
+                return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
             if not user_role.user.is_admin:
-                return JsonResponse(
-                    {
-                        "message": "For this operation you have to register yourself with admin role"
-                    },
-                    status=403,
+                return Response(
+                    {"message": "For this operation you have to register yourself with admin role"},
+                    status=status.HTTP_403_FORBIDDEN,
                 )
 
             if primary_invoice_id:
                 invoice_data = next(
-                    (
-                        inv
-                        for inv in invoices_data["filtered_invoices"]
-                        if inv["id"] == primary_invoice_id
-                    ),
+                    (inv for inv in invoices_data["filtered_invoices"] if inv["id"] == primary_invoice_id),
                     None,
                 )
                 if not invoice_data:
-                    return JsonResponse({"message": "Invoice not found"}, status=404)
+                    return Response({"message": "Invoice not found"}, status=status.HTTP_404_NOT_FOUND)
                 filtered_invoice_data = filter_invoice_data(invoice_data)
-                return JsonResponse(filtered_invoice_data, status=200)
+                return Response(filtered_invoice_data, status=status.HTTP_200_OK)
             else:
-                configured_invoices = models.Configurations.objects.filter(
-                    remaining_units__gt=0
-                )
+                # Get configured invoices
+                configured_invoices = models.Configurations.objects.filter(remaining_units__gt=0)
                 configured_invoices_data = []
                 for configured_invoice in configured_invoices:
-                    configured_invoice = {
+                    invoice_data = {
                         "id": configured_invoice.invoice_id.id,
                         "invoice_id": configured_invoice.invoice_id.invoice_id,
                         "primary_invoice_id": configured_invoice.invoice_id.primary_invoice_id,
                         "configured_ID": configured_invoice.id,
-                        #    hyperlink attach karvani che j dashboard open kare invoice no primary mathi
                         "product_name": configured_invoice.invoice_id.product_name,
                         "irr": configured_invoice.invoice_id.irr,
                         "tenure_in_days": configured_invoice.invoice_id.tenure_in_days,
@@ -250,47 +230,38 @@ def InvoiceMgtAPI(request, user, primary_invoice_id=None):
                         "remaining_units": configured_invoice.remaining_units,
                         "type": "configured",
                     }
-                    configured_invoices_data.append(configured_invoice)
+                    configured_invoices_data.append(invoice_data)
+                
+                # Get existing configured invoice IDs
                 check_configured_invoices = models.Configurations.objects.all()
                 configured_invoice_ids = {
-                    inv.invoice_id.primary_invoice_id
-                    for inv in check_configured_invoices
+                    inv.invoice_id.primary_invoice_id for inv in check_configured_invoices
                 }
+                
+                # Get unfractionalized invoices
                 unfractionalized_invoices = [
-                    filter_invoice_data(inv)
-                    for inv in invoices_data["filtered_invoices"]
+                    filter_invoice_data(inv) for inv in invoices_data["filtered_invoices"]
                 ]
                 unfractionalized_invoices_data = []
 
                 for unfractionalized_invoice in unfractionalized_invoices:
-                    if (
-                        unfractionalized_invoice["primary_invoice_id"]
-                        not in configured_invoice_ids
-                    ):
+                    if unfractionalized_invoice["primary_invoice_id"] not in configured_invoice_ids:
                         unfractionalized_data = {
-                            "primary_invoice_id": unfractionalized_invoice[
-                                "primary_invoice_id"
-                            ],
-                            # hyperlink attach karvani che j dashboard open kare invoice no primary mathi
-                            "buyer_poc_name": unfractionalized_invoice[
-                                "buyer_poc_name"
-                            ],
+                            "primary_invoice_id": unfractionalized_invoice["primary_invoice_id"],
+                            "buyer_poc_name": unfractionalized_invoice["buyer_poc_name"],
                             "product_name": unfractionalized_invoice["product_name"],
                             "irr": unfractionalized_invoice["irr"],
-                            "tenure_in_days": unfractionalized_invoice[
-                                "tenure_in_days"
-                            ],
+                            "tenure_in_days": unfractionalized_invoice["tenure_in_days"],
                             "interest_rate": unfractionalized_invoice["interest_rate"],
                             "xirr": unfractionalized_invoice["xirr"],
                             "principle_amt": unfractionalized_invoice["principle_amt"],
                             "remaining_amt": unfractionalized_invoice["principle_amt"],
-                            "expiration_time": unfractionalized_invoice[
-                                "expiration_time"
-                            ],
+                            "expiration_time": unfractionalized_invoice["expiration_time"],
                             "type": "unfractionalized",
                         }
                         unfractionalized_invoices_data.append(unfractionalized_data)
 
+                # Get fractionalized invoices
                 fractionalized_invoice_data = models.Post_for_sale.objects.filter(
                     configurationID__isnull=False, is_admin=True
                 )
@@ -325,47 +296,41 @@ def InvoiceMgtAPI(request, user, primary_invoice_id=None):
                     }
                     response_data.append(post_data)
 
-                all_data = (
-                    response_data
-                    + configured_invoices_data
-                    + unfractionalized_invoices_data
-                )
+                # Combine all data
+                all_data = response_data + configured_invoices_data + unfractionalized_invoices_data
+                return Response({"user": user_role.id, "data": all_data}, status=status.HTTP_200_OK)
 
-                return JsonResponse(
-                    {"user": user_role.id, "data": all_data}, safe=False, status=200
-                )
-        except json.JSONDecodeError:
-            return JsonResponse({"message": "Invalid JSON"}, status=400)
         except Exception as e:
-            return JsonResponse({"message": str(e)}, status=500)
-    else:
-        return JsonResponse({"message": "Only POST methods are allowed"}, status=405)
+            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@csrf_exempt
-def ConfigurationAPI(request):
-    if request.method == "POST":
+class ConfigurationAPIView(APIView):
+    """
+    API endpoint for configuring invoices.
+    """
+    
+    def post(self, request):
         try:
-            data = json.loads(request.body)
-            user = data.get("user")
-            primary_invoice_id = data.get("primary_invoice_id")
-            no_of_units = data.get("no_of_units")
-            per_unit_price = data.get("per_unit_price")
+            user = request.data.get("user")
+            primary_invoice_id = request.data.get("primary_invoice_id")
+            no_of_units = request.data.get("no_of_units")
+            per_unit_price = request.data.get("per_unit_price")
 
             try:
                 user_role = models.UserRole.objects.get(id=user)
             except models.UserRole.DoesNotExist:
-                return JsonResponse({"message": "User not found"}, status=404)
+                return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
             if not user_role.user.is_admin:
-                return JsonResponse(
+                return Response(
                     {
                         "message": "For this operation you have to register yourself with admin role",
                         "user": user_role.id,
                     },
-                    status=403,
+                    status=status.HTTP_403_FORBIDDEN
                 )
 
+            # Get invoice data from the invoices_data structure
             invoice_data = next(
                 (
                     inv
@@ -374,28 +339,29 @@ def ConfigurationAPI(request):
                 ),
                 None,
             )
+            
             if not invoice_data or not invoice_data.get("product"):
-                return JsonResponse(
+                return Response(
                     {
                         "message": "Invoice data not found or product is null",
                         "user": user_role.id,
                     },
-                    status=404,
+                    status=status.HTTP_404_NOT_FOUND
                 )
+                
             with transaction.atomic():
                 try:
-                    invoice = models.Invoices.objects.get(
-                        primary_invoice_id=primary_invoice_id
-                    )
-                    return JsonResponse(
+                    invoice = models.Invoices.objects.get(primary_invoice_id=primary_invoice_id)
+                    return Response(
                         {
                             "message": "Configuration of this invoice is already done",
                             "invoiceID": invoice.id,
                             "user": user_role.id,
                         },
-                        status=200,
+                        status=status.HTTP_200_OK
                     )
                 except models.Invoices.DoesNotExist:
+                    # Extract product data and create invoice
                     product_data = invoice_data["product"]
                     product_name = product_data["name"]
                     principal_price = product_data["principle_amt"]
@@ -403,9 +369,7 @@ def ConfigurationAPI(request):
                     xirr = product_data["xirr_in_percentage"]
                     irr = product_data["interest_rate_fixed"]
                     tenure_in_days = product_data["tenure_in_days"]
-                    expiration_time = timezone.now() + timezone.timedelta(
-                        days=tenure_in_days
-                    )
+                    expiration_time = timezone.now() + timezone.timedelta(days=tenure_in_days)
 
                     invoice = models.Invoices.objects.create(
                         primary_invoice_id=primary_invoice_id,
@@ -420,6 +384,7 @@ def ConfigurationAPI(request):
                         created_At=timezone.now(),
                     )
 
+                    # Create configuration
                     configure = models.Configurations.objects.create(
                         principal_price=principal_price,
                         per_unit_price=per_unit_price,
@@ -429,67 +394,72 @@ def ConfigurationAPI(request):
                         remaining_units=no_of_units,
                     )
 
+                    # Create fractional units
                     for _ in range(no_of_units):
-                        fractional_unit = models.FractionalUnits.objects.create(
+                        models.FractionalUnits.objects.create(
                             invoice=invoice,
                             current_owner=None,
                             posted_for_sale=False,
                             configurationID=configure,
                             created_At=timezone.now(),
                         )
-                    return JsonResponse(
+                        
+                    return Response(
                         {
-                            "message": "Successfully configured ",
+                            "message": "Successfully configured",
                             "invoice": invoice.id,
                             "configured": configure.id,
                             "user": user_role.id,
                         },
-                        status=200,
+                        status=status.HTTP_200_OK
                     )
+                    
         except Exception as e:
-            return JsonResponse({"message": str(e)}, status=500)
-    else:
-        return JsonResponse({"message": "Only POST methods are allowed"}, status=405)
+            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@csrf_exempt
-def PostInvoiceAPI(request):
-    if request.method == "POST":
+class PostInvoiceAPIView(APIView):
+    """
+    API endpoint for posting invoices for sale.
+    """
+    
+    def post(self, request):
         try:
-            data = json.loads(request.body)
-            user_id = data.get("user")
-            no_of_units = data.get("no_of_units")
-            per_unit_price = data.get("per_unit_price")
-            from_date = data.get("from_date")
-            to_date = data.get("to_date")
+            user_id = request.data.get("user")
+            no_of_units = request.data.get("no_of_units")
+            per_unit_price = request.data.get("per_unit_price")
+            from_date = request.data.get("from_date")
+            to_date = request.data.get("to_date")
             total_price = no_of_units * per_unit_price
-            configureID = data.get("configureID")
+            configureID = request.data.get("configureID")
 
             try:
                 user_role = models.UserRole.objects.get(id=user_id)
             except models.UserRole.DoesNotExist:
-                return JsonResponse({"message": "user does not exist"}, status=400)
+                return Response({"message": "user does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
             if not user_role.user.is_admin:
-                return JsonResponse(
+                return Response(
                     {
                         "message": "For this operation you have to be admin",
                         "user": user_role.id,
                     },
-                    status=400,
+                    status=status.HTTP_400_BAD_REQUEST
                 )
 
             with transaction.atomic():
                 try:
                     configure = models.Configurations.objects.get(id=configureID)
                     if configure.remaining_units < no_of_units:
-                        return JsonResponse(
+                        return Response(
                             {
                                 "message": "Not sufficient units for selling",
                                 "user": user_role.id,
                             },
-                            status=400,
+                            status=status.HTTP_400_BAD_REQUEST
                         )
+                        
+                    # Create post for sale
                     post_for_sale = models.Post_for_sale.objects.create(
                         no_of_units=no_of_units,
                         per_unit_price=per_unit_price,
@@ -506,74 +476,77 @@ def PostInvoiceAPI(request):
                         configurationID=configure,
                         is_admin=user_role.user.is_admin,
                     )
+                    
+                    # Get fractional units
                     fractional_units = models.FractionalUnits.objects.filter(
                         posted_for_sale=False,
                         invoice=configure.invoice_id,
                         configurationID=configure,
                         current_owner__isnull=True,
                     )[:no_of_units]
-                    print("counts ", fractional_units.count())
+                    
                     if fractional_units.count() < no_of_units:
-                        return JsonResponse(
+                        return Response(
                             {"message": "Not enough fractional units available"},
-                            status=400,
+                            status=status.HTTP_400_BAD_REQUEST
                         )
 
+                    # Process each unit
                     for unit in fractional_units:
-                        print(
-                            "unitid ",
-                            unit.fractional_unit_id,
-                            " boolean ",
-                            unit.posted_for_sale,
-                        )
                         models.Post_For_Sale_UnitTracker.objects.create(
                             unitID=unit, post_for_saleID=post_for_sale, sellersID=None
                         )
-                        # unit.posted_for_sale = True
-                        # unit.save(update_fields=["posted_for_sale"])
-                        # print(f"After: Unit {unit.fractional_unit_id} posted_for_sale = {unit.posted_for_sale}")
-                        print("before units ", unit.posted_for_sale)
-                        models.FractionalUnits.objects.filter(id=unit.id).update(
-                            posted_for_sale=True
-                        )
-                        print("units ", unit.posted_for_sale)
+                        models.FractionalUnits.objects.filter(id=unit.id).update(posted_for_sale=True)
+                        
+                    # Update configuration
                     configure.remaining_units -= no_of_units
                     configure.save()
-                    return JsonResponse(
+                    
+                    return Response(
                         {
                             "message": "Successfully posted for sale",
                             "posted_for_saleID": post_for_sale.id,
                             "invoice_id": post_for_sale.invoice_id.id,
                             "user": user_role.id,
                         },
-                        status=201,
+                        status=status.HTTP_201_CREATED
                     )
+                    
                 except models.Configurations.DoesNotExist:
-                    return JsonResponse(
+                    return Response(
                         {
                             "message": "Configuration does not exist",
                             "user": user_role.id,
                         },
-                        status=400,
+                        status=status.HTTP_400_BAD_REQUEST
                     )
-        except json.JSONDecodeError:
-            return JsonResponse({"message": "Invalid JSON"}, status=400)
+                    
         except Exception as e:
-            return JsonResponse({"message": str(e)}, status=500)
-    else:
-        return JsonResponse({"message": "Only POST methods are allowed"}, status=405)
+            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@csrf_exempt
-def UserManagementAPI(request, user):
-    if request.method == "GET":
+class UserManagementAPIView(APIView):
+    """
+    API endpoint for user management.
+    """
+    
+    def get(self, request, user):
         messages = []
         try:
-            user_is_admin = models.UserRole.objects.get(id=user)
+            try:
+                user_is_admin = models.UserRole.objects.get(id=user)
+            except models.UserRole.DoesNotExist:
+                return Response(
+                    {"message": "User not found"}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
             if not user_is_admin.user.is_admin and not user_is_admin.user.is_superadmin:
                 messages.append("For this operation you should be admin or superadmin")
-                return JsonResponse({"messages": messages, "data": None}, status=403)
+                return Response(
+                    {"messages": messages, "data": None}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
 
             user_roles = models.UserRole.objects.all()
             all_user_details = []
@@ -589,48 +562,37 @@ def UserManagementAPI(request, user):
                         "date_of_joining": user_role.user.created_at,
                     }
 
+                    # Handle Company details
                     if user_role.role == "Company":
                         try:
-                            company_details = models.CompanyDetails.objects.get(
-                                user_role=user_role
-                            )
+                            company_details = models.CompanyDetails.objects.get(user_role=user_role)
                             user_details["company_name"] = company_details.company_name
                         except models.CompanyDetails.DoesNotExist:
                             user_details["company_name"] = None
-                            messages.append(
-                                f"Company details not found for user {user_role.id}"
-                            )
+                            messages.append(f"Company details not found for user {user_role.id}")
 
+                    # Handle Individual details
                     elif user_role.role == "Individual":
                         try:
-                            individual_details = models.IndividualDetails.objects.get(
-                                user_role=user_role
-                            )
-                            user_details.update(
-                                {
-                                    "first_name": individual_details.first_name,
-                                    "last_name": individual_details.last_name,
-                                }
-                            )
+                            individual_details = models.IndividualDetails.objects.get(user_role=user_role)
+                            user_details.update({
+                                "first_name": individual_details.first_name,
+                                "last_name": individual_details.last_name,
+                            })
                         except models.IndividualDetails.DoesNotExist:
-                            user_details.update(
-                                {
-                                    "first_name": None,
-                                    "last_name": None,
-                                }
-                            )
-                            messages.append(
-                                f"Individual details not found for user {user_role.id}"
-                            )
+                            user_details.update({
+                                "first_name": None,
+                                "last_name": None,
+                            })
+                            messages.append(f"Individual details not found for user {user_role.id}")
 
+                    # Handle PAN card details
                     try:
                         pan_card = models.PanCardNos.objects.get(user_role=user_role)
                         user_details["pan_card_no"] = pan_card.pan_card_no
                     except models.PanCardNos.DoesNotExist:
                         user_details["pan_card_no"] = None
-                        messages.append(
-                            f"PAN card details not found for user {user_role.id}"
-                        )
+                        messages.append(f"PAN card details not found for user {user_role.id}")
 
                     user_details["is_admin"] = user_role.user.is_admin
                     user_details["is_superadmin"] = user_role.user.is_superadmin
@@ -642,31 +604,41 @@ def UserManagementAPI(request, user):
                 except Exception as e:
                     messages.append(str(e))
 
-            return JsonResponse(
-                {"messages": messages, "data": all_user_details}, safe=False, status=200
+            return Response(
+                {"messages": messages, "data": all_user_details},
+                status=status.HTTP_200_OK
             )
 
         except Exception as e:
             messages.append(str(e))
-            return JsonResponse({"messages": messages, "data": None}, status=500)
-    else:
-        return JsonResponse(
-            {"messages": ["Only GET methods are allowed"], "data": None}, status=405
-        )
+            return Response(
+                {"messages": messages, "data": None}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
-@csrf_exempt
-def usersLedgerAPI(request, user):
-    if request.method == "GET":
+class UsersLedgerAPIView(APIView):
+    """
+    API endpoint for retrieving users' ledger information.
+    """
+    
+    def get(self, request, user):
         try:
-            user_is_admin = models.UserRole.objects.get(id=user)
-
-            if not user_is_admin.user.is_admin and not user_is_admin.user.is_superadmin:
-                return JsonResponse(
-                    {"message": "For this operation you should be admin or superadmin"},
-                    status=500,
+            try:
+                user_is_admin = models.UserRole.objects.get(id=user)
+            except models.UserRole.DoesNotExist:
+                return Response(
+                    {"message": "User not found"}, 
+                    status=status.HTTP_404_NOT_FOUND
                 )
 
+            if not user_is_admin.user.is_admin and not user_is_admin.user.is_superadmin:
+                return Response(
+                    {"message": "For this operation you should be admin or superadmin"},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            # Get all non-admin users
             user_roles = models.UserRole.objects.exclude(
                 Q(user__is_admin=True) | Q(user__is_superadmin=True)
             )
@@ -685,9 +657,8 @@ def usersLedgerAPI(request, user):
                 }
 
                 try:
-                    bankAccs = models.BankAccountDetails.objects.filter(
-                        user_role=user_role
-                    )
+                    # Get bank accounts
+                    bankAccs = models.BankAccountDetails.objects.filter(user_role=user_role)
                     user_data["bank_Accounts"] = [
                         {
                             "user": user_role.id,
@@ -699,12 +670,12 @@ def usersLedgerAPI(request, user):
                         for bankAcc in bankAccs
                     ]
 
+                    # Get wallet and transactions
                     wallet = models.Wallet.objects.get(user_role=user_role)
                     user_data["wallet_balance"] = wallet.OutstandingBalance
                     user_data["primary_bankAcc_ID"] = wallet.primary_bankID.id
-                    wallet_transactions = models.WalletTransaction.objects.filter(
-                        wallet=wallet
-                    )
+                    
+                    wallet_transactions = models.WalletTransaction.objects.filter(wallet=wallet)
                     user_data["wallet_transaction"] = [
                         {
                             "user": wallet_transaction.wallet.primary_bankID.user_role.id,
@@ -746,48 +717,52 @@ def usersLedgerAPI(request, user):
                         for wallet_transaction in wallet_transactions
                     ]
 
-                except models.BankAccountDetails.DoesNotExist:
-                    pass
-                except models.Wallet.DoesNotExist:
-                    pass
-                except models.WalletTransaction.DoesNotExist:
+                except (models.BankAccountDetails.DoesNotExist, models.Wallet.DoesNotExist, 
+                       models.WalletTransaction.DoesNotExist):
+                    # Continue with partial data if some information is missing
                     pass
 
                 response_data.append(user_data)
 
-            return JsonResponse(response_data, safe=False, status=200)
+            return Response(response_data, status=status.HTTP_200_OK)
 
         except Exception as e:
-            return JsonResponse({"message": str(e)}, status=500)
-    else:
-        return JsonResponse({"message": "Only GET methods are allowed"}, status=405)
+            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-@csrf_exempt
-def SalesPurchasedReportAPI(request, user):
-    if request.method == "GET":
+class SalesPurchasedReportAPIView(APIView):
+    """
+    API endpoint for retrieving sales and purchase reports.
+    """
+    
+    def get(self, request, user):
         try:
             if not user:
-                return JsonResponse({"message": "user ID is required"}, status=400)
+                return Response(
+                    {"message": "user ID is required"}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
             try:
                 user_role = models.UserRole.objects.get(id=user)
             except models.UserRole.DoesNotExist:
-                return JsonResponse({"message": "User not found"}, status=404)
+                return Response(
+                    {"message": "User not found"}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
             if not user_role.user.is_admin:
-                return JsonResponse(
-                    {
-                        "message": "For this operation you have to register yourself with admin role"
-                    },
-                    status=403,
+                return Response(
+                    {"message": "For this operation you have to register yourself with admin role"},
+                    status=status.HTTP_403_FORBIDDEN
                 )
 
             with transaction.atomic():
                 try:
                     sales_purchase_reports = models.SalePurchaseReport.objects.all()
                     report_list = []
+                    
                     for report in sales_purchase_reports:
+                        # Get seller information
                         if report.seller_ID.role == "Individual":
                             try:
                                 seller_profile = models.IndividualDetails.objects.get(
@@ -805,6 +780,7 @@ def SalesPurchasedReportAPI(request, user):
                             except models.CompanyDetails.DoesNotExist:
                                 Seller_Name = None
 
+                        # Get buyer information
                         if report.buyerID_ID.role == "Individual":
                             try:
                                 buyer_profile = models.IndividualDetails.objects.get(
@@ -822,6 +798,7 @@ def SalesPurchasedReportAPI(request, user):
                             except models.CompanyDetails.DoesNotExist:
                                 Buyer_Name = None
 
+                        # Get PAN card information
                         try:
                             seller_pancard = models.PanCardNos.objects.get(
                                 user_role=report.seller_ID
@@ -836,8 +813,10 @@ def SalesPurchasedReportAPI(request, user):
                             )
                             Buyer_PAN = buyer_pancard.pan_card_no
                         except models.PanCardNos.DoesNotExist:
-                            Buyer_PAN = seller_profile.first_name
+                            # Fix potential bug: use seller_profile.first_name only if seller_profile exists
+                            Buyer_PAN = getattr(seller_profile, 'first_name', None) if 'seller_profile' in locals() else None
 
+                        # Create report data
                         report_data = {
                             "id": report.id,
                             "invoiceID": report.invoiceID.invoice_id,
@@ -858,108 +837,119 @@ def SalesPurchasedReportAPI(request, user):
                             "IRR": report.IRR,
                         }
                         report_list.append(report_data)
-                    return JsonResponse(
+                        
+                    return Response(
                         {"sales_purchase_reports": report_list, "user": user_role.id},
-                        status=200,
+                        status=status.HTTP_200_OK
                     )
 
                 except models.SalePurchaseReport.DoesNotExist:
-                    return JsonResponse(
-                        {"message": "SalePurchaseReport not found"}, status=404
+                    return Response(
+                        {"message": "SalePurchaseReport not found"}, 
+                        status=status.HTTP_404_NOT_FOUND
                     )
-                # return JsonResponse({"sales_purchase_report" : sales_purchase_report},status=200)
-        except json.JSONDecodeError:
-            return JsonResponse({"message": "Invalid JSON"}, status=400)
+                    
         except Exception as e:
-            return JsonResponse({"message": str(e)}, status=500)
-    else:
-        return JsonResponse({"message": "Only GET methods are allowed"}, status=405)
+            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@csrf_exempt
-def TdsReportAPI(request, user):
-    if request.method == "GET":
+class TdsReportAPIView(APIView):
+    """
+    API endpoint for retrieving TDS reports.
+    """
+    
+    def get(self, request, user):
         try:
             if not user:
-                return JsonResponse({"message": "user ID is required"}, status=400)
+                return Response(
+                    {"message": "user ID is required"}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
             try:
                 user_role = models.UserRole.objects.get(id=user)
             except models.UserRole.DoesNotExist:
-                return JsonResponse({"message": "User not found"}, status=404)
+                return Response(
+                    {"message": "User not found"}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
             if not user_role.user.is_admin:
-                return JsonResponse(
-                    {
-                        "message": "For this operation you have to register yourself with admin role"
-                    },
-                    status=403,
+                return Response(
+                    {"message": "For this operation you have to register yourself with admin role"},
+                    status=status.HTTP_403_FORBIDDEN
                 )
 
-            with transaction.atomic():
-
-                report_data = {
-                    "id": 1,
-                    "PurchaserID": 1,
-                    "Name_of_the_Purchaser_of_Units": "NAME",
-                    "PAN_No": "BUYER",
-                    "Name_of_the_Co": "None",
-                    "PAN_No_of_the_Co": "None",
-                    "TAN_No_of_the_Co": "None",
-                    "Value_of_Per_Unit": 10000,
-                    "Units_Purchased": 2,
-                    "Date_of_Purchase": "2024-08-01",
-                    "Interest_date ": "2024-08-01",
-                    "ROI": 3.7,
-                    "Sale_price_per_unit": 10000,
-                    "Sell_Date": "2024-08-01",
-                    "Total_No_of_days_Units_were_held": 84,
-                    "Total_Amount_credited": 10000,
-                    "Expected_Interest": 6.78,
-                    "Actual_Interest_credited": 6.73,
-                    "Date_of_Payment": "2024-08-01",
-                    "Nature_of_Payment": "MONTHLY",
-                    "Quarter": "None",
-                    "TDS": 20,
-                    "Reciept_No_of_TDS": 21,
-                    "CIN details": "None",
-                }
-                return JsonResponse(
-                    {"sales_purchase_reports": "nksjxnk", "user": user_role.id},
-                    status=200,
-                )
-        except json.JSONDecodeError:
-            return JsonResponse({"message": "Invalid JSON"}, status=400)
+            # Sample TDS report data (static for now)
+            report_data = {
+                "id": 1,
+                "PurchaserID": 1,
+                "Name_of_the_Purchaser_of_Units": "NAME",
+                "PAN_No": "BUYER",
+                "Name_of_the_Co": "None",
+                "PAN_No_of_the_Co": "None",
+                "TAN_No_of_the_Co": "None",
+                "Value_of_Per_Unit": 10000,
+                "Units_Purchased": 2,
+                "Date_of_Purchase": "2024-08-01",
+                "Interest_date ": "2024-08-01",
+                "ROI": 3.7,
+                "Sale_price_per_unit": 10000,
+                "Sell_Date": "2024-08-01",
+                "Total_No_of_days_Units_were_held": 84,
+                "Total_Amount_credited": 10000,
+                "Expected_Interest": 6.78,
+                "Actual_Interest_credited": 6.73,
+                "Date_of_Payment": "2024-08-01",
+                "Nature_of_Payment": "MONTHLY",
+                "Quarter": "None",
+                "TDS": 20,
+                "Reciept_No_of_TDS": 21,
+                "CIN details": "None",
+            }
+            
+            return Response(
+                {"sales_purchase_reports": "nksjxnk", "user": user_role.id},
+                status=status.HTTP_200_OK
+            )
+            
         except Exception as e:
-            return JsonResponse({"message": str(e)}, status=500)
-    else:
-        return JsonResponse({"message": "Only GET methods are allowed"}, status=405)
+            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@csrf_exempt
-def BidReportAPI(request, user):
-    if request.method == "GET":
+class BidReportAPIView(APIView):
+    """
+    API endpoint for retrieving bid reports.
+    """
+    
+    def get(self, request, user):
         try:
             if not user:
-                return JsonResponse({"message": "user ID is required"}, status=400)
+                return Response(
+                    {"message": "user ID is required"}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
             try:
                 user_role = models.UserRole.objects.get(id=user)
             except models.UserRole.DoesNotExist:
-                return JsonResponse({"message": "User not found"}, status=404)
+                return Response(
+                    {"message": "User not found"}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
             if not user_role.user.is_admin:
-                return JsonResponse(
-                    {
-                        "message": "For this operation you have to register yourself with admin role"
-                    },
-                    status=403,
+                return Response(
+                    {"message": "For this operation you have to register yourself with admin role"},
+                    status=status.HTTP_403_FORBIDDEN
                 )
 
             with transaction.atomic():
                 bids_report = models.BidReport.objects.all()
                 report_list = []
+                
                 for report in bids_report:
+                    # Get seller information
                     if report.post_for_saleID.user_id.role == "Individual":
                         try:
                             seller_profile = models.IndividualDetails.objects.get(
@@ -977,6 +967,7 @@ def BidReportAPI(request, user):
                         except models.CompanyDetails.DoesNotExist:
                             Seller_Name = None
 
+                    # Get buyer information
                     if report.user_BidID.user_id.role == "Individual":
                         try:
                             buyer_profile = models.IndividualDetails.objects.get(
@@ -994,6 +985,7 @@ def BidReportAPI(request, user):
                         except models.CompanyDetails.DoesNotExist:
                             Buyer_Name = None
 
+                    # Get PAN card information
                     try:
                         seller_pancard = models.PanCardNos.objects.get(
                             user_role=report.post_for_saleID.user_id
@@ -1008,8 +1000,10 @@ def BidReportAPI(request, user):
                         )
                         Buyer_PAN = buyer_pancard.pan_card_no
                     except models.PanCardNos.DoesNotExist:
-                        Buyer_PAN = seller_profile.first_name
+                        # Fix potential bug: use seller_profile.first_name only if seller_profile exists
+                        Buyer_PAN = getattr(seller_profile, 'first_name', None) if 'seller_profile' in locals() else None
 
+                    # Create report data
                     report_data = {
                         "id": report.id,
                         "PurchaserID": report.user_BidID.user_id.user_role_id,
@@ -1027,43 +1021,52 @@ def BidReportAPI(request, user):
                         "Buyer_PAN": Buyer_PAN,
                     }
                     report_list.append(report_data)
-                return JsonResponse(
-                    {"Bid_Report": report_list, "user": user_role.id}, status=200
+                    
+                return Response(
+                    {"Bid_Report": report_list, "user": user_role.id}, 
+                    status=status.HTTP_200_OK
                 )
-        except json.JSONDecodeError:
-            return JsonResponse({"message": "Invalid JSON"}, status=400)
+                
         except Exception as e:
-            return JsonResponse({"message": str(e)}, status=500)
-    else:
-        return JsonResponse({"message": "Only GET methods are allowed"}, status=405)
+            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@csrf_exempt
-def TradingActivityReportAPI(request, user):
-    if request.method == "GET":
+class TradingActivityReportAPIView(APIView):
+    """
+    API endpoint for retrieving trading activity reports.
+    """
+    
+    def get(self, request, user):
         try:
             if not user:
-                return JsonResponse({"message": "user ID is required"}, status=400)
+                return Response(
+                    {"message": "user ID is required"}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
             try:
                 user_role = models.UserRole.objects.get(id=user)
             except models.UserRole.DoesNotExist:
-                return JsonResponse({"message": "User not found"}, status=404)
+                return Response(
+                    {"message": "User not found"}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
             if not user_role.user.is_admin:
-                return JsonResponse(
-                    {
-                        "message": "For this operation you have to register yourself with admin role"
-                    },
-                    status=403,
+                return Response(
+                    {"message": "For this operation you have to register yourself with admin role"},
+                    status=status.HTTP_403_FORBIDDEN
                 )
 
             with transaction.atomic():
+                # Get active bids
                 active_bids = models.Post_for_sale.objects.filter(
                     type="Bidding", open_for_bid=True, withdrawn=False, sold=False
                 )
                 report_list = []
+                
                 for active_bid in active_bids:
+                    # Get seller information
                     if active_bid.user_id.role == "Individual":
                         try:
                             seller_profile = models.IndividualDetails.objects.get(
@@ -1080,10 +1083,13 @@ def TradingActivityReportAPI(request, user):
                             Seller_Name = seller_profile.company_name
                         except models.CompanyDetails.DoesNotExist:
                             Seller_Name = None
+                            
+                    # Get user bids for this active bid
                     user_bids = models.User_Bid.objects.filter(
                         posted_for_sale_id=active_bid.id
                     )
                     bids_history = []
+                    
                     for bid in user_bids:
                         buyer_name = None
                         if bid.user_id.role == "Individual":
@@ -1103,6 +1109,7 @@ def TradingActivityReportAPI(request, user):
                             except models.CompanyDetails.DoesNotExist:
                                 buyer_name = None
 
+                        # Create bid data
                         bid_data = {
                             "PurchaserID": bid.user_id.user_role_id,
                             "Bid_withdrawn": bid.withdraw,
@@ -1114,6 +1121,8 @@ def TradingActivityReportAPI(request, user):
                             "Status": bid.status,
                         }
                         bids_history.append(bid_data)
+                        
+                    # Create report data
                     report_data = {
                         "id": active_bid.id,
                         "Fractional_Ids": active_bid.no_of_units,
@@ -1123,53 +1132,56 @@ def TradingActivityReportAPI(request, user):
                         "Bids_history": bids_history,
                     }
                     report_list.append(report_data)
-                return JsonResponse(
+                    
+                return Response(
                     {"Trading_Activity_Report": report_list, "user": user_role.id},
-                    status=200,
+                    status=status.HTTP_200_OK
                 )
-        except json.JSONDecodeError:
-            return JsonResponse({"message": "Invalid JSON"}, status=400)
+                
         except Exception as e:
-            return JsonResponse({"message": str(e)}, status=500)
-    else:
-        return JsonResponse({"message": "Only GET methods are allowed"}, status=405)
+            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@csrf_exempt
-def APIMgtReportAPI(request, user):
-    if request.method == "GET":
+class APIMgtReportAPIView(APIView):
+    """
+    API endpoint for retrieving API management reports.
+    """
+    
+    def get(self, request, user):
         try:
             if not user:
-                return JsonResponse({"message": "user ID is required"}, status=400)
+                return Response(
+                    {"message": "user ID is required"}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
             try:
                 user_role = models.UserRole.objects.get(id=user)
             except models.UserRole.DoesNotExist:
-                return JsonResponse({"message": "User not found"}, status=404)
-
-            if not user_role.user.is_admin:
-                return JsonResponse(
-                    {
-                        "message": "For this operation you have to register yourself with admin role"
-                    },
-                    status=403,
+                return Response(
+                    {"message": "User not found"}, 
+                    status=status.HTTP_404_NOT_FOUND
                 )
 
-            with transaction.atomic():
-                try:
-                    with open("APIMgtReport.json", "r") as file:
-                        APIMgtReport_data = json.load(file)
-                except FileNotFoundError:
-                    return JsonResponse(
-                        {"message": "APIMgt Report file not found"}, status=404
-                    )
-                return JsonResponse(APIMgtReport_data, safe=False, status=200)
-        except json.JSONDecodeError:
-            return JsonResponse({"message": "Invalid JSON"}, status=400)
+            if not user_role.user.is_admin:
+                return Response(
+                    {"message": "For this operation you have to register yourself with admin role"},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            try:
+                with open("APIMgtReport.json", "r") as file:
+                    APIMgtReport_data = json.load(file)
+            except FileNotFoundError:
+                return Response(
+                    {"message": "APIMgt Report file not found"}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
+                
+            return Response(APIMgtReport_data, status=status.HTTP_200_OK)
+            
         except Exception as e:
-            return JsonResponse({"message": str(e)}, status=500)
-    else:
-        return JsonResponse({"message": "Only GET methods are allowed"}, status=405)
+            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 def generate_token(admin_id, user_role_id):
@@ -1202,66 +1214,99 @@ def decode_token(token):
         return "failed to decode the token"
 
 
-@csrf_exempt
-def GenerateTokenAPI(request, admin_id, user_role_id):
-    if request.method == "GET":
-        try:
-            admin = models.User.objects.get(id=admin_id, is_superadmin=True)
-        except models.User.DoesNotExist:
-            return JsonResponse(
-                {"message": "Admin not found or not authorized"}, status=404
-            )
-
-        try:
-            user = models.UserRole.objects.get(id=user_role_id)
-        except models.UserRole.DoesNotExist:
-            return JsonResponse({"message": "User not found"}, status=404)
-
-        token = generate_token(admin_id, user_role_id)
-        return JsonResponse({"token": token}, status=200)
-    else:
-        return JsonResponse({"message": "Only GET methods are allowed"}, status=405)
-
-
-@method_decorator(csrf_exempt, name="dispatch")
-class UserPersonateAPI(View):
+class GenerateTokenAPIView(APIView):
+    """
+    API endpoint for generating authentication tokens for admin users.
+    """
+    
     def get(self, request, admin_id, user_role_id):
         try:
-            admin = models.User.objects.get(id=admin_id, is_superadmin=True)
-        except models.User.DoesNotExist:
-            return JsonResponse(
-                {"message": "Admin not found or not authorized"}, status=403
+            # Verify admin user exists and is a superadmin
+            try:
+                admin = models.User.objects.get(id=admin_id, is_superadmin=True)
+            except models.User.DoesNotExist:
+                return Response(
+                    {"message": "Admin not found or not authorized"}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            # Verify user role exists
+            try:
+                user = models.UserRole.objects.get(id=user_role_id)
+            except models.UserRole.DoesNotExist:
+                return Response(
+                    {"message": "User not found"}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            # Generate token
+            token = generate_token(admin_id, user_role_id)
+            return Response({"token": token}, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {"message": str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+
+class UserImpersonateAPIView(APIView):
+    """
+    API endpoint for user impersonation by admin users.
+    """
+    
+    def get(self, request, admin_id, user_role_id):
         try:
-            user_role = models.UserRole.objects.get(id=user_role_id)
-            user = user_role.user
-        except models.UserRole.DoesNotExist:
-            return JsonResponse({"message": "User not found"}, status=404)
+            # Verify admin user exists and is a superadmin
+            try:
+                admin = models.User.objects.get(id=admin_id, is_superadmin=True)
+            except models.User.DoesNotExist:
+                return Response(
+                    {"message": "Admin not found or not authorized"}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
 
-        is_BankDetailsExists = models.BankAccountDetails.objects.filter(
-            user_role=user_role
-        ).exists()
+            # Get user role and user
+            try:
+                user_role = models.UserRole.objects.get(id=user_role_id)
+                user = user_role.user
+            except models.UserRole.DoesNotExist:
+                return Response(
+                    {"message": "User not found"}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
-        if user.is_superadmin:
-            role = "superadmin"
-        elif user.is_admin:
-            role = "admin"
-        else:
-            role = "user"
+            # Check if bank details exist
+            is_BankDetailsExists = models.BankAccountDetails.objects.filter(
+                user_role=user_role
+            ).exists()
 
-        payload = {
-            "user_id": user_role.id,
-            "user_email": user.email,
-            "role": role,
-            "is_BankDetailsExists": is_BankDetailsExists,
-            "exp": int((datetime.utcnow() + timedelta(hours=24)).timestamp()),
-        }
+            # Determine user role
+            if user.is_superadmin:
+                role = "superadmin"
+            elif user.is_admin:
+                role = "admin"
+            else:
+                role = "user"
 
-        new_token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
-        response_data = {"token": new_token}
+            # Create JWT payload
+            payload = {
+                "user_id": user_role.id,
+                "user_email": user.email,
+                "role": role,
+                "is_BankDetailsExists": is_BankDetailsExists,
+                "exp": int((datetime.utcnow() + timedelta(hours=24)).timestamp()),
+            }
 
-        return JsonResponse(response_data, status=200)
+            # Generate JWT token
+            new_token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+            response_data = {"token": new_token}
 
-    def http_method_not_allowed(self, request, *args, **kwargs):
-        return JsonResponse({"message": "Only GET methods are allowed"}, status=405)
+            return Response(response_data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {"message": str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+

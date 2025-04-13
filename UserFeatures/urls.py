@@ -7,21 +7,21 @@ urlpatterns = [
     path('verify-otp/',views.VerifyOtpAPI.as_view()),
     path('verify-status/<int:user>',views.VerifyStatusAPI.as_view()), 
     path('phone-to-prefill/<int:user>',views.PhoneToPrefillAPI.as_view()),   
-    path('pan-to-gst/',views.PANToGSTAPI.as_view()),#DONE
-    path('profile/',views.ProfileAPI), #DONE
-    path('profile/<int:user>',views.ProfileAPI), #DONE
-    path('bank-account-details/',views.BankAccDetailsAPI), #DONE
-    path('credit-funds/',views.Credit_FundsAPI), #bank_to_wallet #DONE
-    path('withdraw-funds/',views.Withdraw_FundsAPI),
-    path('ledger/<int:user>',views.LedgerAPI), #DONE
-    path('show-funds/<int:user_role_id>',views.ShowFundsAPI),
-    path('get-sell-purchase-details/<int:user>',views.GetSellPurchaseDetailsAPI), #DONE
-    path('to-buy/',views.TobuyAPI), #wallet_to_buy #DONE
-    path('post-for-sell/',views.ToSellAPI), #sell_to_wallet #DONE
-    path('check-balance-against-bid-price/',views.checkBalanceAgainstBidPrice),#DONE
-    path('proceed-to-bid/',views.proceedToBid),#DONE
-    path('modify-bid/',views.ModifyBidAPI),#DONE
-    path('withdraw-bid/',views.withdrawBid),#DONE
-    path('accept-bid/',views.AcceptBidAPI),#DONE
-    path('cash-flow/<int:invoiceID>/',views.cashFlowAPI)#DONE
+    path('pan-to-gst/',views.PANToGSTAPI.as_view()),
+    path('profile/', views.ProfileAPIView.as_view()),
+    path('profile/<int:user>/', views.ProfileAPIView.as_view()),
+    path('bank-account-details/', views.BankAccountDetailsAPIView.as_view()),
+    path('credit-funds/', views.CreditFundsAPIView.as_view()),
+    path('withdraw-funds/', views.WithdrawFundsAPIView.as_view()),
+    path('ledger/<int:user>/', views.LedgerAPIView.as_view()),
+    path('show-funds/<int:user_role_id>/', views.ShowFundsAPIView.as_view()),
+    path('get-sell-purchase-details/<int:user>/', views.GetSellPurchaseDetailsAPIView.as_view()),
+    path('to-buy/', views.ToBuyAPIView.as_view()),
+    path('post-for-sell/', views.ToSellAPIView.as_view()),
+    path('check-balance-against-bid-price/', views.CheckBalanceAgainstBidPriceAPIView.as_view()),
+    path('proceed-to-bid/', views.ProceedToBidAPIView.as_view()),
+    path('modify-bid/', views.ModifyBidAPIView.as_view()),
+    path('withdraw-bid/', views.WithdrawBidAPIView.as_view(), name='withdraw-bid'),
+    path('accept-bid/', views.AcceptBidAPIView.as_view(), name='accept-bid'),
+    path('cash-flow/<int:invoiceID>/', views.CashFlowAPIView.as_view(), name='cash-flow'),
 ]
