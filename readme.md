@@ -97,7 +97,7 @@ This repository contains the Secondary Platform implementation, which allows for
 
 ![secondary drawio](https://github.com/user-attachments/assets/e349395c-7e7e-43fc-8bd0-1526c082a32a)
 
-##Database Design 
+## Database Design 
 
 ![Secoundary_Trading_Platform](https://github.com/user-attachments/assets/201d210c-3032-4a88-ab7e-e6865235690d)
 
