@@ -553,14 +553,14 @@ class ProfileAPIView(APIView):
                                 
                             profile = models.IndividualDetails.objects.create(
                                 user_role=user_role,
-                                first_name=validated_data.get("firstName"),
-                                last_name=validated_data.get("lastName"),
+                                first_name=validated_data.get("first_name"),
+                                last_name=validated_data.get("last_name"),
                                 addressLine1=validated_data.get("addressLine1"),
                                 addressLine2=validated_data.get("addressLine2"),
                                 city=validated_data.get("city"),
                                 state=validated_data.get("state"),
-                                pin_code=validated_data.get("postalCode"),
-                                alternate_phone_no=validated_data.get("alternatePhone"),
+                                pin_code=int(validated_data.get("pin_code")),
+                                alternate_phone_no=int(validated_data.get("alternate_phone_no")),
                                 created_at=timezone.now(),
                                 updated_at=timezone.now()
                             )
