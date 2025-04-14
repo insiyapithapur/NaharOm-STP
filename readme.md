@@ -209,8 +209,7 @@ python manage.py runserver
 ### Deployment (Render)
 The application is configured for deployment on Render using the provided `Procfile`.
 Base URL for the project: https://naharom-stp.onrender.com
-You can view and test all API endpoints using the Swagger UI at:
-https://naharom-stp.onrender.com/swagger/
+You can fork my postman collection : [<img src="https://run.pstmn.io/button.svg" alt="Run In Postman" style="width: 128px; height: 32px;">](https://app.getpostman.com/run-collection/30178984-1a78c7e4-8662-4546-885b-b0b814e29fcb?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D30178984-1a78c7e4-8662-4546-885b-b0b814e29fcb%26entityType%3Dcollection%26workspaceId%3D3a2ddb85-7464-4cd1-b12e-8407475d2de0)
 
 ## Project Structure
 
